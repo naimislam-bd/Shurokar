@@ -6,25 +6,33 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
 export const generateBengaliSong = async (request: SongRequest): Promise<GeneratedSong> => {
   const systemInstruction = `
-    আপনি একজন পেশাদার বাঙালি গীতিকার এবং সুরকার। 
-    আপনার কাজ হলো ব্যবহারকারীর দেওয়া তথ্যের ভিত্তিতে একটি সম্পূর্ণ মৌলিক বাংলা গান তৈরি করা। 
-    যদি ব্যবহারকারী কোনো অডিও স্যাম্পল (audio sample) প্রদান করেন, তবে সেই স্যাম্পলের ছন্দ, গতি এবং মুড বিশ্লেষণ করে গানের কথা এবং সুরের পরিকল্পনা করুন।
+    আপনি একজন বিশ্বমানের বাঙালি গীতিকার এবং সংগীত পরিচালক। 
+    আপনার কাজ হলো ব্যবহারকারীর চাহিদামত একটি পূর্ণাঙ্গ মৌলিক বাংলা গানের কথা এবং সংগীত আয়োজন তৈরি করা।
     
+    কঠোর গঠনতন্ত্র (Strict Structure):
+    গানটি অবশ্যই নিচের ক্রমে সাজাতে হবে:
+    ১. সূচনা (Intro)
+    ২. স্তবক ১ (Verse 1)
+    ৩. স্থায়ী (Chorus)
+    ৪. স্তবক ২ (Verse 2)
+    ৫. স্থায়ী (Chorus)
+    ৬. সেতু (Bridge)
+    ৭. শেষ স্থায়ী (Final Chorus)
+
     কঠোর নির্দেশাবলী:
-    ১. ভাষা: শুধুমাত্র বাংলা। কোনো ইংরেজি বা হিন্দি শব্দ ব্যবহার করবেন না। (এমনকি 'Intro', 'Chorus' এর বদলে 'সূচনা', 'স্থায়ী' ব্যবহার করুন)।
-    ২. সময়কাল: কমপক্ষে ৩ মিনিট এবং সর্বোচ্চ ১০ মিনিট। প্রতি বিভাগের পাশে সময় উল্লেখ করুন।
-    ৩. গঠন: [সূচনা], [স্তবক ১], [স্থায়ী], [স্তবক ২], [স্থায়ী], [সেতু (যদি ৬ মিনিটের বেশি হয়)], [শেষ স্থায়ী]।
-    ৪. ছন্দ এবং গীতিময়তা বজায় রাখুন।
-    ৫. আউটপুট অবশ্যই JSON ফরম্যাটে হতে হবে।
+    ১. ভাষা: সম্পূর্ণ বাংলা। কোনো ইংরেজি শব্দ (এমনকি Intro, Chorus, Verse) গানের কথায় বা বিভাগের নামে ব্যবহার করবেন না। 
+    ২. সময়কাল: মোট সময়কাল ${request.targetDuration} মিনিটের মধ্যে সীমাবদ্ধ রাখুন। প্রতিটি বিভাগের পাশে সময় উল্লেখ করুন (যেমন: ৪৫ সেকেন্ড)।
+    ৩. লিরিক্স: প্রতিটি বিভাগে অন্তত ৪-৮টি লাইন থাকবে। ছন্দ এবং গীতিময়তা বজায় রাখা বাধ্যতামূলক।
+    ৪. আউটপুট ফরম্যাট: শুধুমাত্র JSON।
   `;
 
   const userTextPrompt = `
     ধারা (Genre): ${request.genre}
     আবেগ (Mood): ${request.mood}
     গতি (Tempo): ${request.tempo}
-    ব্যবহারকারীর বর্ণনা: ${request.sampleStyle || 'নেই'}
-    কাঙ্ক্ষিত সময়কাল: ${request.targetDuration} মিনিট
-    ${request.audioSample ? 'সংযুক্ত অডিও স্যাম্পলটির ওপর ভিত্তি করে গানটি তৈরি করুন।' : ''}
+    শৈলী বর্ণনা: ${request.sampleStyle || 'স্বাভাবিক'}
+    নির্ধারিত সময়: ${request.targetDuration} মিনিট
+    ${request.audioSample ? 'সংযুক্ত অডিওটির তাল ও লয় অনুসরণ করুন।' : ''}
   `;
 
   const parts: any[] = [{ text: userTextPrompt }];
@@ -53,8 +61,8 @@ export const generateBengaliSong = async (request: SongRequest): Promise<Generat
             items: {
               type: Type.OBJECT,
               properties: {
-                type: { type: Type.STRING, description: "বিভাগের নাম (যেমন: সূচনা, স্তবক, স্থায়ী)" },
-                duration: { type: Type.STRING, description: "সময়কাল (যেমন: ৩০ সেকেন্ড)" },
+                type: { type: Type.STRING, description: "বিভাগের নাম (সূচনা, স্তবক, স্থায়ী, সেতু)" },
+                duration: { type: Type.STRING },
                 lyrics: { type: Type.STRING }
               },
               required: ["type", "duration", "lyrics"]
@@ -78,6 +86,6 @@ export const generateBengaliSong = async (request: SongRequest): Promise<Generat
   });
 
   const text = response.text;
-  if (!text) throw new Error("No response from AI");
+  if (!text) throw new Error("AI থেকে কোনো সাড়া পাওয়া যায়নি");
   return JSON.parse(text);
 };
