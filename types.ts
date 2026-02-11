@@ -5,6 +5,13 @@ export enum Tempo {
   Fast = 'দ্রুত (Fast)'
 }
 
+export enum Voice {
+  Male = 'Puck',
+  Female = 'Kore',
+  Deep = 'Charon',
+  Energetic = 'Fenrir'
+}
+
 export interface AudioData {
   data: string;
   mimeType: string;
@@ -17,6 +24,9 @@ export interface SongRequest {
   sampleStyle: string;
   targetDuration: number;
   audioSample?: AudioData;
+  customLyrics?: string;
+  isCustomMode: boolean;
+  voice: Voice;
 }
 
 export interface SongSection {
